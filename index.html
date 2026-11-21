@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1622">
+<title>Concourse – Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% 0%,#123049,#0b1622 60%);color:#eef4f9;font-family:Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:28px 18px}
+.wrap{max-width:860px;width:100%}
+h1{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:56px;margin:0;text-transform:uppercase;letter-spacing:.5px}
+h1 span{color:#5bc2f0}
+.lead{color:#8fa6ba;font-size:17px;line-height:1.55;margin:6px 0 28px;max-width:620px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+a.card{display:block;text-decoration:none;color:inherit;background:#13212f;border:1px solid #243a50;border-radius:18px;padding:20px;transition:transform .15s,border-color .15s}
+a.card:hover{transform:translateY(-3px);border-color:#5bc2f0}
+.em{font-size:38px}
+.t{font-family:"Barlow Condensed","Arial Narrow";font-size:26px;font-weight:800;text-transform:uppercase;margin-top:8px}
+.d{color:#8fa6ba;font-size:14px;line-height:1.5;margin-top:4px}
+.go{display:inline-block;margin-top:14px;background:#5bc2f0;color:#04202f;font-weight:700;font-size:13px;border-radius:99px;padding:7px 14px}
+.how{margin-top:26px;background:#0f1d2a;border:1px dashed #243a50;border-radius:16px;padding:18px 20px;font-size:14px;line-height:1.65;color:#b9cbd9}
+.how b{color:#eef4f9}
+.foot{color:#5f7a90;font-size:12px;margin-top:18px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Con<span>course</span></h1>
+  <p class="lead">Order food, drink and merch from your seat at the Coventry Building Society Arena. Find every kiosk on the stadium map, order ahead, and get a notification when it's ready to collect.</p>
+  <div class="grid">
+    <a class="card" href="customer.html"><div class="em">📱</div><div class="t">Customer app</div><div class="d">What fans see on their phone: map, kiosks, menus, basket, order tracking and the "ready" notification.</div><span class="go">Open →</span></a>
+    <a class="card" href="kitchen.html"><div class="em">👨‍🍳</div><div class="t">Kitchen app</div><div class="d">The staff screen behind each counter: incoming orders, Start preparing, and Ready — notify customer.</div><span class="go">Open →</span></a>
+    <a class="card" href="demo.html"><div class="em">🖥️</div><div class="t">Side-by-side demo</div><div class="d">Both apps on one screen — best for presenting on a laptop or projector.</div><span class="go">Open →</span></a>
+  </div>
+  <div class="how">
+    <b>Running the two-app demo:</b> open the <b>Customer app</b> and the <b>Kitchen app</b> in two windows of the same browser on the same device (e.g. side by side on a laptop). Place an order in the customer app — it lands on the kitchen screen instantly. Press <b>Ready — notify customer</b> and the customer app gets the notification. Or leave the kitchen's <b>autopilot</b> on and orders go ready on their own after 2 minutes.<br><br>
+    <b>Tip:</b> tap anywhere once first so the browser allows the notification sounds.
+  </div>
+  <p class="foot">Concept prototype — not affiliated with the venue or club. The kiosk list comes from the venue's matchday food &amp; drink page; prices, menus, queue times, adverts and the match itself are illustrative. Payments are simulated.</p>
+</div>
+</body>
+</html>

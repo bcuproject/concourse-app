@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1622">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Concourse – Side-by-side Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1622; --panel:#13212f; --panel2:#1a2c3d; --line:#243a50;
+  --text:#eef4f9; --muted:#8fa6ba; --sky:#5bc2f0;
+  --green:#3ccf8e; --amber:#f5b942; --red:#ff6b6b;
+  --r:14px; --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:#060d14;color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-action:manipulation}
+input,select{font:inherit;font-size:16px}
+#phone{position:relative;height:100vh;height:100dvh;max-width:480px;margin:0 auto;transform:translateZ(0);overflow:hidden;overflow:clip;box-shadow:0 0 60px #0008;background:var(--bg)}
+.app{height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--bg);position:relative;padding-bottom:calc(90px + var(--sab))}
+
+/* kitchen (staff) screen */
+#kitchen{position:fixed;inset:0;z-index:70;display:none;flex-direction:column;background:#0a0f15;border:1px solid #1f2b38}
+#kitchen.on{display:flex}
+.khead{padding:calc(14px + var(--sat)) 16px 12px;border-bottom:1px solid #1f2b38;background:#0e151d}
+.khead .r1{display:flex;align-items:center;gap:10px}
+.khead h2{font-size:24px;text-transform:uppercase;flex:1}
+.khead .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+.kclose{width:38px;height:38px;border-radius:10px;background:var(--panel);font-size:16px;color:var(--muted)}
+.kctl{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.kctl label{flex:1;min-width:150px}
+.kstats{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.kbody{flex:1;overflow:auto;padding:12px 12px 30px;display:grid;grid-template-columns:1fr;gap:14px;align-content:start}
+.kcol h3{font-family:Inter;font-size:12.5px;letter-spacing:1px;text-transform:uppercase;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.kcol h3 i{width:9px;height:9px;border-radius:50%}
+.kcol .cnt{background:#1f2b38;border-radius:99px;padding:1px 8px;font-size:11px;color:var(--muted)}
+.kempty{color:#5f7a90;font-size:13px;border:1.5px dashed #1f2b38;border-radius:12px;padding:16px;text-align:center}
+.tk{background:#141d27;border:1px solid #223244;border-radius:14px;margin-bottom:10px;overflow:hidden}
+.tk .bar{height:5px}
+.tk.s0 .bar{background:var(--amber)} .tk.s1 .bar{background:var(--sky)} .tk.s2 .bar{background:var(--green)} .tk.sx .bar{background:#5b7389}
+.tk.flash{animation:flash 1s 4}
+@keyframes flash{50%{border-color:var(--amber);box-shadow:0 0 0 3px #f5b94255}}
+.tkin{padding:10px 12px 12px}
+.tkh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tkago{text-align:right}
+.tkcode{font-family:"Barlow Condensed","Arial Narrow";font-size:30px;font-weight:800;letter-spacing:2px}
+.tkago{font-size:12px;color:var(--muted)}
+.tks{font-size:12.5px;color:var(--muted);margin-top:-2px}
+.tk ul{list-style:none;margin:8px 0;padding:0;font-size:15px}
+.tk li{padding:3px 0;border-bottom:1px dashed #223244}
+.tk li b{color:var(--amber);margin-right:6px}
+.tkbtn{width:100%;border-radius:11px;padding:13px;font-weight:800;font-size:15px;margin-top:8px}
+.tkbtn.prep{background:var(--amber);color:#2a1d00}
+.tkbtn.ready{background:var(--green);color:#03281a;font-size:16px}
+.tkbtn.done{background:#223244;color:var(--text)}
+.tklink{display:block;width:100%;text-align:center;color:var(--sky);font-size:12.5px;font-weight:600;padding:8px 0 0}
+.auto{font-size:12px;color:var(--sky);margin-top:4px}
+.staffbtn{height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:12px;font-weight:700;padding:0 10px;color:var(--amber);flex:none}
+.khint{font-size:12px;color:var(--muted);background:#121b25;border:1px solid #1f2b38;border-radius:10px;padding:9px 12px;margin-top:10px;line-height:1.45}
+@media(min-width:700px){.kbody{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1000px){
+  body{display:flex;justify-content:center;gap:24px;padding:24px;height:100vh;box-sizing:border-box;overflow:hidden}
+  #phone{width:430px;height:calc(100vh - 48px);margin:0;border-radius:34px;border:7px solid #1c2a38;flex:none}
+  #kitchen{display:flex;position:relative;inset:auto;z-index:1;height:calc(100vh - 48px);flex:1;max-width:820px;border-radius:22px;overflow:hidden}
+  .kclose,.staffbtn{display:none}
+  .khead{padding-top:14px}
+}
+
+/* app modes */
+.kopen{display:none;color:var(--sky);font-weight:700;font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+body[data-mode="kitchen"] .kopen{display:inline-block}
+body[data-mode="customer"] #kitchen{display:none!important}
+body[data-mode="kitchen"] #phone,body[data-mode="kitchen"] #push{display:none!important}
+body[data-mode="kitchen"]{display:block;padding:0;height:auto;overflow:auto}
+body[data-mode="kitchen"] #kitchen{display:flex!important;position:relative;inset:auto;z-index:1;min-height:100vh;height:100vh;max-width:none;border-radius:0;border:0}
+body[data-mode="kitchen"] .kclose{display:none}
+@media(min-width:1000px){body[data-mode="customer"]{display:block}body[data-mode="customer"] #phone{margin:0 auto}}
+
+/* advertising */
+.ad{position:relative;border-radius:16px;overflow:hidden;padding:14px 14px 14px 16px;display:flex;gap:14px;align-items:center;text-align:left;width:100%;color:#fff;border:0;margin:0}
+.ad::after{content:"";position:absolute;right:-30px;bottom:-40px;width:140px;height:140px;border-radius:50%;background:#ffffff14}
+.adlbl{position:absolute;top:8px;right:10px;font-size:9.5px;font-weight:800;background:#0005;border-radius:6px;padding:2px 6px;letter-spacing:.8px;text-transform:uppercase;z-index:1}
+.ad .ae{font-size:40px;flex:none;filter:drop-shadow(0 4px 8px #0004);z-index:1}
+.ad .ab{font-size:11px;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.8px}
+.ad .ah{font-family:"Barlow Condensed","Arial Narrow";font-size:22px;font-weight:800;text-transform:uppercase;line-height:1.02;margin-top:1px}
+.ad .as{font-size:12.5px;opacity:.92;margin-top:4px;line-height:1.35}
+.ad .ac{margin-top:9px;display:inline-block;background:#fff;color:#111;font-weight:700;font-size:12px;border-radius:99px;padding:5px 12px}
+.ad > div{z-index:1;min-width:0}
+.ad.slim{padding:11px 14px}.ad.slim .ae{font-size:30px}.ad.slim .ah{font-size:18px}.ad.slim .ac{margin-top:6px}
+.carousel{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;scrollbar-width:none;margin:16px -16px 0;padding:0 16px;scroll-padding:0 16px}
+.carousel::-webkit-scrollbar{display:none}
+.carousel .ad{flex:0 0 100%;scroll-snap-align:start;min-height:128px}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:9px}
+.dots i{width:6px;height:6px;border-radius:3px;background:#36506a;transition:all .25s}
+.dots i.on{width:18px;background:var(--sky)}
+.promo{border:1.5px solid #6b5524;background:linear-gradient(120deg,#2a2210,#13212f 70%)}
+.promo .t{color:var(--amber)}
+.codebox{display:flex;align-items:center;justify-content:space-between;border:2px dashed #5b7389;border-radius:12px;padding:12px 14px;margin-top:14px}
+.codebox b{font-family:"Barlow Condensed","Arial Narrow";font-size:28px;letter-spacing:3px}
+.stt{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.stt th{text-align:left;color:var(--muted);font-weight:600;font-size:11.5px;padding:6px 4px;border-bottom:1px solid var(--line)}
+.stt td{padding:8px 4px;border-bottom:1px solid var(--line)}
+.stt td:not(:first-child),.stt th:not(:first-child){text-align:right}
+
+/* customer push notification */
+#push{position:fixed;top:0;left:50%;transform:translate(-50%,-130%);width:min(440px,calc(100% - 20px));z-index:100;background:#eef1f5f2;color:#111;border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;transition:transform .4s cubic-bezier(.2,.9,.3,1.2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 14px 44px #000a;cursor:pointer;text-align:left}
+#push.on{transform:translate(-50%,calc(12px + var(--sat)))}
+#push .pi{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#5bc2f0,#2a7fb8);display:grid;place-items:center;font-family:"Barlow Condensed","Arial Narrow";font-weight:800;color:#04202f;font-size:20px;flex:none}
+#push .pt{display:flex;justify-content:space-between;font-size:12px;color:#555;font-weight:600}
+#push .pb{font-size:14.5px;font-weight:700;margin-top:1px}
+#push .pd{font-size:13.5px;color:#333;margin-top:1px;line-height:1.35}
+.ord.ready{border-color:var(--green);box-shadow:0 0 0 0 #3ccf8e66;animation:rpulse 1.8s infinite}
+@keyframes rpulse{70%{box-shadow:0 0 0 10px #3ccf8e00}100%{box-shadow:0 0 0 0 #3ccf8e00}}
+.readybox{background:#0f2e22;border:1px solid #2a6b50;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;color:#bdf3d9;line-height:1.45}
+h1,h2,h3,.cond{font-family:"Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.3px;margin:0}
+
+/* header */
+.top{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#0b1622 85%,#0b162200);padding:calc(12px + var(--sat)) 16px 8px}
+.brand{display:flex;align-items:center;gap:10px}
+.back{width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:20px;flex:none}
+.brand h1{font-size:26px;font-weight:800;text-transform:uppercase}
+.brand h1 span{color:var(--sky)}
+.evname{flex:1;min-width:0}
+.evname .n{font-family:"Barlow Condensed","Arial Narrow";font-weight:700;font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+.evname .v{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live{margin-top:10px;background:linear-gradient(135deg,#123049,#0f2236);border:1px solid #2a4c6a;border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex:none;animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #ff6b6b99}70%{box-shadow:0 0 0 8px #ff6b6b00}100%{box-shadow:0 0 0 0 #ff6b6b00}}
+.ltitle{font-family:"Barlow Condensed","Arial Narrow";font-size:19px;font-weight:700;flex:1;line-height:1.15}
+.ltitle b{background:#0008;border-radius:6px;padding:0 7px;color:#fff}
+.lbadge{font-size:13px;color:var(--sky);font-weight:700;white-space:nowrap}
+.lmsg{font-size:12px;color:var(--amber);margin-top:6px}
+.lmsg.calm{color:var(--green)}
+.seatpill{font-size:12.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.seatpill button{color:var(--sky);font-weight:600;font-size:12.5px;padding:6px 0;white-space:nowrap}
+
+/* views */
+.view{display:none;padding:4px 16px 16px}
+.view.on{display:block;animation:fade .2s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}}
+.sec{font-size:12.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin:18px 0 10px}
+
+/* home */
+.hero{padding:6px 0 2px}
+.hero p{color:var(--muted);font-size:14.5px;line-height:1.5;margin:6px 0 0}
+.evcard{display:block;width:100%;text-align:left;border-radius:18px;overflow:hidden;margin-bottom:12px;border:1px solid var(--line);background:var(--panel);transition:transform .1s}
+.evcard:active{transform:scale(.985)}
+.evtop{height:92px;padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:hidden}
+.evtop .em{font-size:46px;position:absolute;right:14px;bottom:-4px;filter:drop-shadow(0 4px 10px #0006)}
+.evbot{padding:12px 14px 14px}
+.evbot .t{font-family:"Barlow Condensed","Arial Narrow";font-size:22px;font-weight:700;text-transform:uppercase;line-height:1.1}
+.evbot .s{font-size:13px;color:var(--muted);margin-top:3px}
+.livetag{display:inline-flex;align-items:center;gap:6px;background:#000a;border-radius:99px;padding:4px 10px;font-size:11.5px;font-weight:700}
+.livetag i{width:7px;height:7px;border-radius:50%;background:var(--red)}
+.addcard{width:100%;border:1.5px dashed #36597a;border-radius:18px;padding:18px;text-align:left;color:var(--muted);font-size:14px;line-height:1.5}
+.addcard b{color:var(--text);font-size:16px;display:block;margin-bottom:2px}
+
+/* map */
+.mapwrap{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px}
+svg.map{width:100%;display:block;touch-action:manipulation}
+.zone{fill:#1c3247;stroke:#2e4c68;stroke-width:1.5;cursor:pointer;transition:fill .2s}
+.zone.sel{fill:#2a5577}
+.zlbl{fill:#a9c2d6;font:700 12px "Barlow Condensed","Arial Narrow";letter-spacing:1.5px;pointer-events:none;text-transform:uppercase}
+.pin{cursor:pointer}
+.pin circle{stroke:#0b1622;stroke-width:2}
+.pin text{font:700 10px Inter,sans-serif;fill:#0b1622;pointer-events:none}
+.pin.soon circle{opacity:.45}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:11.5px;color:var(--muted);margin:10px 4px 2px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+
+/* chips & search */
+.search{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px 12px;margin-top:6px}
+.search input{flex:1;background:none;border:0;color:var(--text);outline:none;padding:9px 0;min-width:0}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:none;margin:0 -16px;padding-left:16px;padding-right:16px}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font-size:13px;font-weight:500;color:var(--muted);flex:none}
+.chip.on{background:var(--sky);border-color:var(--sky);color:#04202f;font-weight:700}
+
+/* cards */
+.card{display:flex;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:10px;text-align:left;width:100%;align-items:center;transition:transform .1s}
+.card:active{transform:scale(.985)}
+.ico{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-size:26px;flex:none}
+.card .t{font-weight:700;font-size:15px}
+.card .s{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+.meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:#0b1622;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.g{color:var(--green);border-color:#2a6b50}
+.tag.a{color:var(--amber);border-color:#6b5524}
+.tag.r{color:var(--red);border-color:#6b2a2a}
+.tag.b{color:var(--sky);border-color:#235b78}
+.chev{color:var(--muted);font-size:20px}
+.nearest{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
+.nearest::-webkit-scrollbar{display:none}
+.near{flex:none;width:150px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:left}
+.near .ico{width:40px;height:40px;font-size:20px;border-radius:10px;margin-bottom:8px}
+.near .t{font-weight:700;font-size:13.5px}
+.near .s{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:#000a;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:100%;max-width:480px;max-height:90%;overflow:auto;overscroll-behavior:contain;background:var(--bg);border-radius:22px 22px 0 0;z-index:50;transition:transform .28s cubic-bezier(.2,.8,.2,1);border-top:1px solid var(--line);padding-bottom:var(--sab)}
+.sheet:not(.on){visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
+.sheet.on{transform:translate(-50%,0)}
+.grab{position:sticky;top:0;z-index:2;background:var(--bg);padding:10px 0 6px;touch-action:none}
+.grab div{width:40px;height:5px;border-radius:4px;background:#3a536a;margin:0 auto}
+.shead{padding:4px 18px 14px;display:flex;gap:14px;align-items:center}
+.shead .ico{width:64px;height:64px;font-size:32px}
+.shead h2{font-size:26px;font-weight:700;line-height:1.05}
+.sbody{padding:0 18px 40px}
+.locbox{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px}
+.item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.item .n{font-weight:600;font-size:14.5px}
+.item .d{font-size:12px;color:var(--muted);margin-top:2px}
+.item .p{font-weight:700;margin-left:auto;white-space:nowrap}
+.add{width:40px;height:40px;border-radius:12px;background:var(--sky);color:#04202f;font-weight:800;font-size:22px;flex:none}
+.add:disabled{background:#2a3d50;color:#5b7389;cursor:not-allowed}
+.qty{display:flex;align-items:center;gap:6px;flex:none}
+.qty button{width:36px;height:36px;border-radius:10px;background:var(--panel2);font-weight:800;font-size:18px}
+.qty span{min-width:18px;text-align:center;font-weight:700}
+.note{font-size:12px;color:var(--muted);line-height:1.5;background:#0f1d2a;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin-top:14px}
+.x{position:absolute;right:14px;top:12px;width:36px;height:36px;border-radius:50%;background:var(--panel);font-size:16px;color:var(--muted);z-index:3}
+
+/* fab + nav */
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + var(--sab));width:calc(100% - 32px);max-width:448px;background:var(--sky);color:#04202f;border-radius:14px;padding:15px 16px;font-weight:700;display:none;justify-content:space-between;align-items:center;z-index:30;box-shadow:0 10px 30px #5bc2f040}
+.fab.on{display:flex}
+.fab .c{background:#04202f;color:var(--sky);border-radius:8px;padding:2px 8px;margin-right:8px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0a141ef2;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:none;z-index:35;padding:6px 6px calc(8px + var(--sab))}
+.nav.on{display:flex}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:11px;font-weight:600;color:var(--muted);position:relative;min-height:50px}
+.nav button.on{color:var(--sky)}
+.nav svg{width:24px;height:24px}
+.badge{position:absolute;top:0;right:calc(50% - 22px);background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px}
+
+/* basket */
+.opt{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:13px 12px;margin-bottom:8px;width:100%;text-align:left}
+.opt.on{border-color:var(--sky);background:#11293b}
+.opt:disabled{opacity:.45}
+.opt .rad{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);flex:none;margin-top:2px}
+.opt.on .rad{border-color:var(--sky);background:radial-gradient(var(--sky) 45%,transparent 50%)}
+.opt b{display:block;font-size:14px}
+.opt small{color:var(--muted);font-size:12px;line-height:1.4}
+.row{display:flex;gap:8px}
+.field{flex:1;display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--muted);font-weight:600;min-width:0}
+.field input,.field select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px;outline:none;width:100%}
+.field select option{background:var(--panel2)}
+.tot{display:flex;justify-content:space-between;font-size:14px;padding:6px 0;color:var(--muted)}
+.tot.big{font-size:18px;color:var(--text);font-weight:700;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+.cta{width:100%;background:var(--sky);color:#04202f;font-weight:800;padding:15px;border-radius:14px;margin-top:14px;font-family:"Barlow Condensed","Arial Narrow";letter-spacing:.5px;text-transform:uppercase;font-size:19px}
+.cta:disabled{background:#2a3d50;color:#5b7389}
+.ghost{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:8px;color:var(--muted);font-weight:600}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);margin-top:12px;line-height:1.45}
+.check input{margin-top:2px;accent-color:var(--sky);width:18px;height:18px;flex:none}
+.empty{text-align:center;color:var(--muted);padding:44px 20px;line-height:1.5}
+.empty .big{font-size:48px;margin-bottom:10px}
+
+/* orders */
+.ord{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.ord .h{display:flex;justify-content:space-between;align-items:center}
+.code{font-family:"Barlow Condensed","Arial Narrow";font-size:36px;font-weight:800;color:var(--sky);letter-spacing:3px;line-height:1}
+.steps{display:flex;gap:4px;margin:12px 0 8px}
+.steps div{flex:1;height:5px;border-radius:4px;background:#2a3d50}
+.steps div.done{background:var(--green)}
+.steps div.cur{background:linear-gradient(90deg,var(--green),#2a3d50);background-size:200% 100%;animation:load 1.2s linear infinite}
+@keyframes load{from{background-position:100% 0}to{background-position:-100% 0}}
+.stlbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted)}
+.status{font-weight:700;font-size:15px;margin-top:8px}
+.ord ul{margin:10px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+.ord li{padding:2px 0;display:flex;justify-content:space-between}
+
+.toast{position:fixed;top:calc(14px + var(--sat));left:50%;transform:translate(-50%,-300%);background:var(--green);color:#04202f;font-weight:700;padding:12px 18px;border-radius:12px;z-index:60;transition:transform .3s;font-size:14px;width:max-content;max-width:90%;text-align:center;box-shadow:0 8px 24px #0006}
+.toast.on{transform:translate(-50%,0)}
+.disclaimer{font-size:11px;color:#5f7a90;text-align:center;padding:14px 10px 0;line-height:1.5}
+.disclaimer a{color:var(--sky)}
+</style>
+</head>
+<body data-mode="demo">
+<div id="phone">
+<div class="app" id="app">
+  <header class="top" id="top"></header>
+
+  <section class="view on" id="v-home"></section>
+
+  <section class="view" id="v-map">
+    <div class="mapwrap"><svg class="map" id="map" aria-label="Venue map"></svg><div class="legend" id="legend"></div></div>
+    <div id="mapAd" style="margin-top:12px"></div>
+    <div class="sec" id="nearHead">Nearest to you</div>
+    <div class="nearest" id="nearest"></div>
+    <div class="sec" id="zoneHead">Everything here</div>
+    <div id="zoneList"></div>
+  </section>
+
+  <section class="view" id="v-shops">
+    <div class="search">🔍<input id="q" placeholder="Search — e.g. pizza, cider, vegan, hoodie" oninput="renderShops()"></div>
+    <div class="chips" id="catChips"></div>
+    <div class="chips" id="zoneChips" style="padding-top:2px"></div>
+    <div id="shopList" style="margin-top:6px"></div>
+  </section>
+
+  <section class="view" id="v-basket"><div id="basketBody"></div></section>
+  <section class="view" id="v-orders"><div id="ordersBody"></div></section>
+
+  <p class="disclaimer" id="disc"></p>
+</div>
+
+<button class="fab" id="fab" onclick="go('basket')"><span><span class="c" id="fabN">0</span>View basket</span><span id="fabT">£0.00</span></button>
+
+<nav class="nav" id="nav">
+  <button class="on" data-v="map" onclick="go('map')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z M9 4v14 M15 6v14"/></svg>Map</button>
+  <button data-v="shops" onclick="go('shops')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9l1.5-5h13L20 9M4 9h16v2a3 3 0 01-6 0 3 3 0 01-4 0 3 3 0 01-6 0zM5 13v7h14v-7"/></svg>Shops</button>
+  <button data-v="basket" onclick="go('basket')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14l-1.5 11h-11zM9 8V6a3 3 0 016 0v2"/></svg>Basket<span class="badge" id="bB" style="display:none"></span></button>
+  <button data-v="orders" onclick="go('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h10v18l-5-3-5 3z"/><path d="M10 8h4M10 12h4"/></svg>Orders<span class="badge" id="oB" style="display:none"></span></button>
+</nav>
+
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"><div class="grab" id="grab"><div></div></div><button class="x" onclick="closeSheet()" aria-label="Close">✕</button><div id="sheetBody"></div></div>
+<div class="toast" id="toast"></div>
+</div><!-- /phone -->
+
+<aside id="kitchen" aria-label="Kitchen screen">
+  <div class="khead">
+    <div class="r1"><h2>👨‍🍳 Kitchen <span style="color:var(--amber)">screen</span></h2><a class="kopen" href="customer.html" target="_blank">📱 Customer app ↗</a><button class="kclose" onclick="closeKitchen()" aria-label="Close kitchen screen">✕</button></div>
+    <div class="sub" id="kSub">Staff view</div>
+    <div id="kCtl"></div>
+  </div>
+  <div class="kbody" id="kBody"></div>
+</aside>
+
+<button id="push" onclick="pushTap()"><div class="pi">C</div><div style="flex:1;min-width:0"><div class="pt"><span>CONCOURSE</span><span>now</span></div><div class="pb" id="pushT"></div><div class="pd" id="pushD"></div></div></button>
+
+<script>
+const MODE=document.body.dataset.mode||"demo"; // demo = side by side · customer = fan app · kitchen = staff screen
+/* ================= HELPERS ================= */
+const S=id=>document.getElementById(id);
+const gbp=n=>"£"+n.toFixed(2);
+const hhmm=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")};
+const rr=(x,y,w,h,r=10)=>`M${x+r} ${y}H${x+w-r}A${r} ${r} 0 0 1 ${x+w} ${y+r}V${y+h-r}A${r} ${r} 0 0 1 ${x+w-r} ${y+h}H${x+r}A${r} ${r} 0 0 1 ${x} ${y+h-r}V${y+r}A${r} ${r} 0 0 1 ${x+r} ${y}Z`;
+const circ=(cx,cy,r)=>`M${cx-r} ${cy}a${r} ${r} 0 1 0 ${2*r} 0a${r} ${r} 0 1 0 ${-2*r} 0Z`;
+const m=(n,d,p,o={})=>({n,d,p,...o});
+const esc=s=>s.replace(/'/g,"\\'");
+
+const CATS={
+  food:{label:"Hot food",color:"#f5b942",emoji:"🍔"},
+  bar:{label:"Bars",color:"#5bc2f0",emoji:"🍺"},
+  sweet:{label:"Coffee & treats",color:"#ff8fc8",emoji:"🍩"},
+  shop:{label:"Shops & merch",color:"#b18cff",emoji:"🛍️"},
+  info:{label:"Info & free",color:"#3ccf8e",emoji:"ℹ️"}
+};
+const TYPES={
+  stadium:{label:"Stadiums",emoji:"🏟️",grad:"linear-gradient(135deg,#1a5d8a,#0e2a44)"},
+  festival:{label:"Festivals",emoji:"🎪",grad:"linear-gradient(135deg,#8a3a9e,#2a1640)"},
+  arena:{label:"Arenas & concerts",emoji:"🎤",grad:"linear-gradient(135deg,#b0402f,#3a1414)"},
+  outdoor:{label:"Outdoor shows",emoji:"🌳",grad:"linear-gradient(135deg,#3f8a3a,#14301a)"}
+};
+
+/* shared menus */
+const SOFT=[m("Coca-Cola / Coke Zero","500ml bottle",3.0),m("Sprite / Fanta","500ml bottle",3.0),m("Water","500ml",2.5),m("Red Bull","250ml can",3.2)];
+const LAGER=(names)=>names.map(([n,d,p])=>m(n,d,p,{adult:true}));
+const cbsBar=()=>[
+  {group:"Draught",items:LAGER([["Carling","Pint · lager",5.6],["Coors","Pint · lager",5.8],["Madri","Pint · lager",6.2],["Guinness","Pint · stout",6.4],["Cobra","Pint · lager",6.0],["Pravha","Pint · pilsner",6.0],["Doom Bar","Pint · amber ale",6.0],["Caffreys Black","Pint · ale",6.0],["Aspall","Pint · cider",6.0]])},
+  {group:"Bottles & cans",items:LAGER([["Rekorderlig","Bottle · fruit cider",5.8],["Kingstone","Can · cider",5.5],["Carling","Can · lager",5.0],["Wine can","Red, rosé or white · 187ml",6.5]])},
+  {group:"0% options",items:[m("Guinness 0.0","Can",4.2),m("Madri 0.0","Can",4.2),m("Rekorderlig 0.0","Bottle",4.2)]},
+  {group:"Soft drinks",items:[m("Coca-Cola / Coke Zero","500ml bottle",3.0),m("Sprite / Fanta","500ml bottle",3.0),m("Smart Water","500ml",2.5),m("Oasis","500ml",3.0),m("Red Bull","250ml can",3.2)]},
+  {group:"Hot drinks",items:[m("Coffee","Coventry Coffee Company",3.0),m("Hot chocolate","Coventry Coffee Company",3.2),m("Tea","PG Tips",2.5),m("Bovril","The terrace classic",2.7)]}
+];
+const genBar=(extra=[])=>[
+  {group:"Beer & cider",items:LAGER([["Lager","Pint",6.5],["Pale ale","Pint",7.0],["Cider","Pint",6.8],["Stout","Pint",7.0]])},
+  {group:"Wine & spirits",items:LAGER([["Wine","Red, white or rosé · 187ml",7.5],["Spirit & mixer","Single · 25ml",8.0],...extra])},
+  {group:"0% & soft",items:[m("Alcohol-free lager","Can",5.0),...SOFT]}
+];
+const merch=(prefix)=>[{group:"Merch",items:[m(prefix+" T-shirt","S–XXL",30),m(prefix+" hoodie","S–XXL",55),m("Tote bag","",12),m("Poster","A2, rolled",15)]}];
+
+/* ================= EVENTS ================= */
+const EVENTS={
+/* ---------- STADIUM (real shop list) ---------- */
+cbs:{
+  type:"stadium",name:"Sky Blues vs Visitors",venue:"Coventry Building Society Arena",when:"Today · Kick-off 15:00",demo:false,
+  seated:true,delivery:true,zoneWord:"Stand",pay:"Cashless venue — card payments only",
+  source:{label:"the venue's matchday food & drink page",url:"https://www.coventrybuildingsocietyarena.co.uk/matchdayfoodanddrink"},
+  viewBox:"0 0 400 500",
+  base:`<defs><pattern id="pst" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="20" height="40" fill="#1f7a4a"/><rect x="20" width="20" height="40" fill="#22874f"/></pattern></defs>
+   <rect x="2" y="2" width="396" height="496" rx="40" fill="#0e1b28" stroke="#243a50" stroke-dasharray="4 6"/>`,
+  overlay:`<rect x="108" y="118" width="184" height="268" rx="4" fill="url(#pst)" stroke="#e8f5ee" stroke-width="1.5"/>
+   <line x1="108" y1="252" x2="292" y2="252" stroke="#e8f5ee" stroke-width="1.2"/><circle cx="200" cy="252" r="26" fill="none" stroke="#e8f5ee" stroke-width="1.2"/>
+   <rect x="155" y="118" width="90" height="38" fill="none" stroke="#e8f5ee" stroke-width="1.2"/><rect x="155" y="348" width="90" height="38" fill="none" stroke="#e8f5ee" stroke-width="1.2"/>`,
+  zones:[
+    {id:"North",name:"North Stand",d:"M60 40 H340 L320 105 H80 Z",lx:200,ly:28,cx:200,cy:78},
+    {id:"East",name:"East Stand",d:"M360 60 L300 115 V385 L360 440 Z",lx:382,ly:250,rot:90,cx:330,cy:250},
+    {id:"South",name:"South Stand",d:"M80 395 H320 L340 460 H60 Z",lx:200,ly:480,cx:200,cy:425},
+    {id:"West",name:"West Stand",d:"M40 60 L100 115 V385 L40 440 Z",lx:18,ly:250,rot:-90,cx:70,cy:250},
+    {id:"Outside",name:"Outside the ground",outside:true}
+  ],
+  shops:[
+    {id:"curry",name:"Corner Kick Curry",cat:"food",zone:"North",x:120,y:62,emoji:"🍛",bg:"#5a3a12",desc:"Bold, flavour-packed curries — the half-time warmer.",
+     menu:[{group:"Curries",items:[m("Chicken tikka masala","With pilau rice",9.5,{tags:["GF"]}),m("Vegetable curry","With pilau rice",8.5,{tags:["VG","GF"]}),m("Curry & chips","Chips with curry sauce",6.5,{tags:["V"]})]},{group:"Sides",items:[m("Onion bhajis (2)","With mint dip",4.0,{tags:["V"]}),m("Naan bread","Plain or garlic",2.5,{tags:["V"]})]}]},
+    {id:"donut",name:"Planet Doughnuts",cat:"sweet",zone:"North",x:200,y:62,emoji:"🍩",bg:"#5a1f45",desc:"Handcrafted doughnuts with a range of toppings.",
+     menu:[{group:"Doughnuts",items:[m("Glazed ring","Classic sugar glaze",3.0,{tags:["V"]}),m("Biscoff","Filled & topped",4.0,{tags:["V"]}),m("Sky Blue sprinkle","Vanilla icing, blue sprinkles",3.5,{tags:["V"]}),m("Box of 4","Mixed selection",12.0,{tags:["V"]})]}]},
+    {id:"barN",name:"Carling Bar – North",cat:"bar",zone:"North",x:280,y:62,emoji:"🍺",bg:"#123a55",desc:"Draught beer, cans, soft and hot drinks.",menu:cbsBar()},
+    {id:"pizza",name:"Pizza",cat:"food",zone:"East",x:338,y:150,emoji:"🍕",bg:"#5a2412",desc:"Freshly cooked pizza with quality toppings.",
+     menu:[{group:"Pizzas",items:[m("Margherita","Tomato, mozzarella, basil",8.0,{tags:["V"]}),m("Pepperoni","Tomato, mozzarella, pepperoni",9.0),m("BBQ chicken","BBQ base, chicken, red onion",9.5),m("Vegan garden","Peppers, onion, vegan cheese",9.0,{tags:["VG"]})]}]},
+    {id:"chip",name:"Chip Shop",cat:"food",zone:"East",x:338,y:205,emoji:"🍟",bg:"#5a4a12",desc:"Chips and kebabs.",
+     menu:[{group:"Chips",items:[m("Chips","Regular portion",4.0,{tags:["VG"]}),m("Cheesy chips","With grated cheddar",5.0,{tags:["V"]})]},{group:"Kebabs",items:[m("Chicken kebab","Wrap, salad, garlic mayo",8.5),m("Doner kebab","Wrap, salad, chilli sauce",8.5)]}]},
+    {id:"grill",name:"Grill Shed",cat:"food",zone:"East",x:338,y:260,emoji:"🍔",bg:"#5a2a1a",desc:"Freshly grilled burgers.",
+     menu:[{group:"Burgers",items:[m("Classic beef burger","Brioche bun, onions, sauce",8.5),m("Cheeseburger","With melted cheddar",9.0),m("Chicken burger","Grilled fillet, mayo",8.5),m("Plant burger","Vegan patty & bun",8.5,{tags:["VG"]})]}]},
+    {id:"au",name:"AU Vodka Bar",cat:"bar",zone:"East",x:338,y:315,emoji:"🍸",bg:"#3a1f5a",adult:true,desc:"Fruity and sweet AU vodka serves. 18+ only.",
+     menu:[{group:"AU serves",items:[m("AU Blue Raspberry & lemonade","Single · 25ml",7.0,{adult:true}),m("AU Pink Lemonade & soda","Single · 25ml",7.0,{adult:true}),m("AU Bubblegum & lemonade","Single · 25ml",7.0,{adult:true}),m("Make it a double","Add 25ml",3.0,{adult:true})]}]},
+    {id:"barE",name:"Carling Bar – East",cat:"bar",zone:"East",x:338,y:370,emoji:"🍺",bg:"#123a55",desc:"Draught beer, cans, soft and hot drinks.",menu:cbsBar()},
+    {id:"barS",name:"Carling Bar – South",cat:"bar",zone:"South",x:200,y:440,emoji:"🍺",bg:"#123a55",desc:"Draught beer, cans, soft and hot drinks.",menu:cbsBar()},
+    {id:"barW",name:"Carling Bar – West",cat:"bar",zone:"West",x:62,y:250,emoji:"🍺",bg:"#123a55",desc:"Draught beer, cans, soft and hot drinks.",menu:cbsBar()},
+    {id:"sky",name:"The Sky Bar",cat:"bar",zone:"North",x:160,y:88,emoji:"🌭",bg:"#123a55",soon:true,desc:"5 kiosks across the North and East Stands: hot dogs, pies, waffle fries, soft drinks, confectionery and draught beer.",
+     menu:[{group:"Preview menu",items:[m("Hot dog","",5.5),m("Pie","",5.0),m("Waffle fries","",4.0),m("Draught beer","",5.6,{adult:true})]}]},
+    {id:"sam",name:"Sam's Snack Bar",cat:"sweet",zone:"North",x:240,y:88,emoji:"🍬",bg:"#5a1f45",soon:true,desc:"Sweet bags, crisps and chocolate bars.",menu:[{group:"Preview menu",items:[m("Sweet bag","",3.0),m("Crisps","",1.5),m("Chocolate bar","",1.8)]}]},
+    {id:"pie",name:"Peter's Proper Pie Shop",cat:"food",zone:"North",x:80,y:88,emoji:"🥧",bg:"#5a3a12",soon:true,desc:"Pies, bakes and sausage rolls.",menu:[{group:"Preview menu",items:[m("Steak pie","",5.5),m("Cheese & onion bake","",4.5),m("Sausage roll","",3.5)]}]},
+    {id:"bj",name:"Burger Joint",cat:"food",zone:"North",x:320,y:88,emoji:"🍔",bg:"#5a2a1a",soon:true,desc:"Beef burgers with cheese and toppings in a toasted bun.",menu:[{group:"Preview menu",items:[m("Cheeseburger","",9.0)]}]},
+    {id:"stone",name:"The Stone",cat:"food",zone:"East",x:312,y:178,emoji:"🍕",bg:"#5a2412",soon:true,desc:"Stone-baked pizzas.",menu:[{group:"Preview menu",items:[m("Stone-baked margherita","",9.0)]}]},
+    {id:"chip2",name:"Chip Shop (2nd kiosk)",cat:"food",zone:"East",x:312,y:288,emoji:"🍟",bg:"#5a4a12",soon:true,desc:"Chips and kebabs — same as the main Chip Shop.",menu:[{group:"Preview menu",items:[m("Chips","",4.0)]}]},
+    {id:"fvIn",name:"Indoor Fan Village",cat:"info",zone:"Outside",x:30,y:30,emoji:"🏠",bg:"#123f2c",info:true,desc:"Bars, open pre-match.",hours:"Pre-match"},
+    {id:"fvOut",name:"Outdoor Fan Village",cat:"info",zone:"Outside",x:370,y:30,emoji:"🎪",bg:"#123f2c",info:true,desc:"Bars and food trailers serving burgers and Greek-inspired dishes.",hours:"Pre-match & half-time"},
+    {id:"fvE",name:"East Fan Village",cat:"info",zone:"Outside",x:378,y:470,emoji:"🌮",bg:"#123f2c",info:true,desc:"Outdoor area with local vendors offering food and drink.",hours:"Pre-match"}
+  ],
+  clock(T){
+    const mm=23+T, ht=mm>45&&mm<=60, played=mm<=45?mm:ht?45:mm-15, ft=played>=94;
+    const sc=played>=72?"2 – 1":played>=34?"1 – 1":"1 – 0";
+    const msg= ht?"⏸ Half-time — queues are busiest now; order-ahead is quickest"
+      : ft?"🏁 Full time — kiosks stay open for 60 minutes after the match"
+      : played<45?`⏱ Half-time in ${45-played} min — pre-order to skip the rush`:`⏱ ${90-played>0?90-played+" min to full time":"Stoppage time"}`;
+    return {title:`SKY BLUES <b>${sc}</b> VISITORS`,badge:ft?"FT":ht?"HT":played+"'",msg,rush:ht||(ft&&played<110)};
+  },
+  slots(T){
+    const mm=23+T, s=[{id:"asap",label:"⚡ As soon as possible",sub:"We'll notify you when it's ready"}];
+    if(mm<44) s.push({id:"ht",label:"⏸ Ready for half-time",sub:"Prepared so it's ready as the whistle goes",at:44-23});
+    if(mm<104) s.push({id:"ft",label:"🏁 After the final whistle",sub:"Kiosks stay open 60 min after the match",at:104-23});
+    return s;
+  }
+}
+};
+
+/* ================= ADVERTISING ================= */
+// Brand ads (all brands are fictional) — targeted by event type
+const ADS=[
+  {id:"volt",brand:"Volt Mobile",h:"5G that keeps up with the crowd",s:"Unlimited data from £15 a month. No signal drop at sold-out events.",cta:"See plans",emoji:"📶",bg:"linear-gradient(120deg,#5a22e0,#c13cff)",types:"all",code:"CROWD15"},
+  {id:"northway",brand:"Northway Bank",h:"Tap to pay. Get 2% back.",s:"Cashback on everything you buy at events with your Northway card.",cta:"Find out more",emoji:"💳",bg:"linear-gradient(120deg,#0c5e4f,#1fae8a)",types:"all"},
+  {id:"ride",brand:"RideHome",h:"£5 off your ride home",s:"Beat the car park queue — book before it's over.",cta:"Get code",emoji:"🚕",bg:"linear-gradient(120deg,#e08e00,#ff5e3a)",types:"all",code:"HOME5"},
+  {id:"kit",brand:"Pitchside Sports",h:"New home shirt — 20% off",s:"Show your matchday order code in any Pitchside store.",cta:"Get offer",emoji:"👕",bg:"linear-gradient(120deg,#123f66,#3aa3dd)",types:["stadium"],code:"MATCH20"},
+];
+// Stall promotions inside each event (link straight to the stall)
+EVENTS.cbs.promos=[{shop:"donut",h:"Beat the half-time rush",s:"Pre-order Planet Doughnuts now and collect at the whistle."},{shop:"grill",h:"Burgers without the queue",s:"Order from Grill Shed and pick up from the fast-track hatch."}];
+
+const adStats={}; let seen=new Set();
+const stat=id=>adStats[id]||(adStats[id]={imp:0,tap:0});
+function imp(id){if(seen.has(id))return;seen.add(id);stat(id).imp++}
+const adsFor=type=>ADS.filter(a=>a.types==="all"||a.types.includes(type));
+function adHTML(a,slim,noImp){if(!noImp)imp(a.id);
+  return `<button class="ad ${slim?"slim":""}" data-ad="${a.id}" style="background:${a.bg}" onclick="openAd('${a.id}')"><span class="adlbl">Ad</span><span class="ae">${a.emoji}</span>
+    <div><div class="ab">${a.brand}</div><div class="ah">${a.h}</div>${slim?"":`<div class="as">${a.s}</div>`}<span class="ac">${a.cta} →</span></div></button>`}
+function promoHTML(p){const s=shopById(p.shop);if(!s)return"";const id="promo-"+evId+"-"+p.shop;imp(id);
+  return `<button class="card promo" onclick="stat('${id}').tap++;openShop('${s.id}')"><div class="ico" style="background:${s.bg}">${s.emoji}</div>
+    <div style="flex:1;min-width:0"><div class="t">${p.h}</div><div class="s">${p.s}</div><div class="meta"><span class="tag a">⭐ Promoted · ${s.name}</span></div></div><span class="chev">›</span></button>`}
+function rotating(list,offset=0){return list[(Math.floor(Date.now()/20000)+offset)%list.length]}
+function openAd(id){
+  const a=ADS.find(x=>x.id===id);stat(id).tap++;
+  openSheet(`<div class="sbody" style="padding-top:4px"><div class="ad" style="background:${a.bg};min-height:150px;margin-top:36px"><span class="adlbl">Ad</span><span class="ae" style="font-size:56px">${a.emoji}</span><div><div class="ab">${a.brand}</div><div class="ah" style="font-size:28px">${a.h}</div></div></div>
+    <p style="font-size:15px;line-height:1.5;margin:14px 0 0">${a.s}</p>
+    ${a.code?`<div class="codebox"><div><div style="font-size:11.5px;color:var(--muted)">Your code</div><b>${a.code}</b></div><button class="chip on" onclick="copyCode('${a.code}',this)">Copy</button></div>`:""}
+    ${a.cat?`<button class="cta" onclick="closeSheet();cat='${a.cat}';zoneF='all';go('shops')">${a.cta}</button>`:`<button class="cta" onclick="closeSheet();toast('Opens ${a.brand} — demo only')">${a.cta}</button>`}
+    <p style="font-size:11.5px;color:#5f7a90;text-align:center;margin-top:12px">Sponsored · ${a.brand} is a made-up brand for this demo</p></div>`);
+}
+function copyCode(c,btn){try{navigator.clipboard.writeText(c).then(()=>{btn.textContent="Copied ✓"},()=>{btn.textContent=c})}catch(e){btn.textContent=c}}
+function openAdvertise(){
+  stat("advertise").tap++;
+  const rows=[...ADS.map(a=>[a.emoji+" "+a.brand,a.id]),...Object.entries(EVENTS).flatMap(([k,e])=>(e.promos||[]).map(p=>["⭐ "+(shopById(p.shop,e)?.name||p.shop),"promo-"+k+"-"+p.shop]))]
+    .map(([n,id])=>{const s=stat(id);return `<tr><td>${n}</td><td>${s.imp}</td><td>${s.tap}</td><td>${s.imp?Math.round(s.tap/s.imp*100)+"%":"–"}</td></tr>`}).join("");
+  openSheet(`<div class="sbody" style="padding-top:6px"><h2 style="font-size:26px">Advertise on Concourse</h2>
+   <p style="color:var(--muted);font-size:14px;line-height:1.55">Reach fans at the moment they're spending — targeted by event type, venue, area and time (before kick-off, half-time and full time).</p>
+   <div class="sec">Ad spaces</div>
+   <div class="note" style="margin-top:0;font-size:13px">🏠 <b>Home carousel</b> — the first thing every visitor sees<br>🗺️ <b>Map banner</b> — under the venue map, rotates every 20 seconds<br>⭐ <b>Promoted stalls</b> — stall deals mixed into the shop list<br>⏱ <b>While you wait</b> — shown while an order is being made<br>🔔 <b>Timed offers</b> — e.g. a ride home before the final whistle</div>
+   <div class="sec">Live stats this session</div>
+   <table class="stt"><tr><th>Advert</th><th>Views</th><th>Taps</th><th>Tap rate</th></tr>${rows}</table>
+   <p style="font-size:11.5px;color:#5f7a90;margin-top:10px">Views are counted each time an ad appears on screen. Rates would be set per venue.</p>
+   <button class="cta" onclick="closeSheet()">Done</button></div>`);
+}
+
+let carT=null,carHold=0;
+function startCarousel(){
+  const c=S("car");if(!c)return;clearInterval(carT);
+  const step=()=>c.children[0].offsetWidth+10, idx=()=>Math.round(c.scrollLeft/step());
+  const mark=()=>{const i=idx();[...S("dots").children].forEach((d,j)=>d.classList.toggle("on",i===j));const el=c.children[i];if(el)imp(el.dataset.ad)};
+  c.onscroll=()=>{clearTimeout(c._t);c._t=setTimeout(mark,120)};
+  c.onpointerdown=()=>{carHold=Date.now()};
+  mark();
+  carT=setInterval(()=>{if(!document.body.contains(c)||view!=="home"){clearInterval(carT);return}
+    if(Date.now()-carHold<8000)return;const n=(idx()+1)%c.children.length;c.scrollTo({left:n*step(),behavior:"smooth"})},5000);
+}
+
+/* ================= STATE ================= */
+let evId=null, view="home", cat="all", zoneF="all", homeType="all", basket=[], orders=[], ageOK=false, fulfil="collect", when="asap", T=0;
+let locs={}; try{locs=JSON.parse(localStorage.getItem("cc_locs"))||{}}catch(e){}
+const EV=()=>EVENTS[evId];
+const shops=()=>EV().shops;
+const shopById=(id,e=EV())=>e.shops.find(s=>s.id===id);
+const zoneById=(id,e=EV())=>e.zones.find(z=>z.id===id);
+const loc=()=>locs[evId]||null;
+const saveLocs=()=>{try{localStorage.setItem("cc_locs",JSON.stringify(locs))}catch(e){}};
+const zoneName=s=>{const z=zoneById(s.zone);return z?z.name:s.zone};
+const waitFor=s=>{if(s.soon||s.info)return null;const base={food:7,bar:5,sweet:3,shop:3}[s.cat]||5;const c=EV().clock(T);return Math.max(1,Math.round(base*(c.rush?2.6:1)+((s.id.charCodeAt(0)+T)%4)-1))};
+const waitTag=s=>{const w=waitFor(s);if(w==null)return"";const c=w<=5?"g":w<=10?"a":"r";return `<span class="tag ${c}">⏱ ~${w} min</span>`};
+
+/* ================= HEADER ================= */
+function renderTop(){
+  if(!evId){
+    S("top").innerHTML=`<div class="brand"><h1>Con<span>course</span></h1></div>`;
+    return;
+  }
+  const e=EV(), c=e.clock(T), l=loc();
+  const where = l ? (e.seated&&l.block ? `${zoneById(l.zone).name} · Block ${l.block}${l.row?" · Row "+l.row:""}${l.num?" · Seat "+l.num:""}` : zoneById(l.zone).name) : "not set";
+  S("top").innerHTML=`<div class="brand"><button class="back" onclick="goHome()" aria-label="All events">‹</button>
+    <div class="evname"><div class="n">${e.name}</div><div class="v">${TYPES[e.type].emoji} ${e.venue}</div></div><button class="staffbtn" onclick="openKitchen()">👨‍🍳 Staff</button></div>
+    <div class="live"><div class="dot"></div><div class="ltitle">${c.title}</div><div class="lbadge">${c.badge}</div></div>
+    <div class="lmsg ${c.rush?"":"calm"}">${c.msg}</div>
+    <div class="seatpill"><span>📍 ${e.seated?"Your seat":"You're at"}: ${where}</span><button onclick="openLoc()">${l?"Change":e.seated?"Set seat":"Set location"}</button></div>`;
+}
+
+/* ================= HOME ================= */
+function renderHome(){
+  const q=(S("hq")?.value||"").toLowerCase();
+  const list=Object.entries(EVENTS).filter(([k,e])=>(homeType==="all"||e.type===homeType)&&(!q||(e.name+" "+e.venue+" "+TYPES[e.type].label).toLowerCase().includes(q)));
+  S("v-home").innerHTML=`<div class="hero"><h2 style="font-size:30px;text-transform:uppercase">Skip the queue.<br><span style="color:var(--sky)">Not the moment.</span></h2>
+    <p>Find every food stall, bar and shop at your event, see where it is, and order from where you are.</p></div>
+    <div class="carousel" id="car">${ADS.map(a=>adHTML(a,false,true)).join("")}</div><div class="dots" id="dots">${ADS.map((_,i)=>`<i class="${i?"":"on"}"></i>`).join("")}</div>
+    
+    <div class="sec">Your venue</div>
+    ${list.map(([k,e])=>`<button class="evcard" onclick="openEvent('${k}')">
+      <div class="evtop" style="background:${TYPES[e.type].grad}"><span class="livetag"><i></i>LIVE</span><span class="em">${TYPES[e.type].emoji}</span></div>
+      <div class="evbot"><div class="t">${e.name}</div><div class="s">${e.venue}</div>
+      <div class="meta"><span class="tag">${e.when}</span><span class="tag b">${e.shops.filter(s=>!s.info&&!s.soon).length} places to order</span>${e.demo?'<span class="tag">Demo data</span>':'<span class="tag g">Real shop list</span>'}</div></div></button>`).join("")||`<div class="empty">No events match.</div>`}
+    <div class="sec">For organisers</div>
+    <button class="addcard" onclick="openAddEvent()"><b>➕ Add your venue or event</b>Stadiums, festivals, arenas, theatres, racecourses, county shows, Christmas markets — anywhere with stalls and queues.</button>
+    <button class="addcard" style="margin-top:10px" onclick="openAdvertise()"><b>📣 Advertise with Concourse</b>Put your brand in front of fans while they're ordering. See ad spaces and live stats.</button>`;
+  startCarousel();
+}
+
+/* ================= MAP ================= */
+function renderMap(){
+  const e=EV(); S("map").setAttribute("viewBox",e.viewBox);
+  let h=e.base;
+  e.zones.filter(z=>z.d).forEach(z=>{
+    h+=`<path class="zone ${zoneF===z.id?"sel":""}" ${z.evenodd?'fill-rule="evenodd"':""} d="${z.d}" onclick="pickZone('${z.id}')"/>`;
+  });
+  h+=e.overlay;
+  e.zones.filter(z=>z.d).forEach(z=>{h+=`<text class="zlbl" x="${z.lx}" y="${z.ly}" text-anchor="middle" ${z.rot?`transform="rotate(${z.rot} ${z.lx} ${z.ly})"`:""}>${z.name}</text>`});
+  e.shops.forEach((s,i)=>{
+    if(cat!=="all"&&s.cat!==cat)return;
+    h+=`<g class="pin ${s.soon?"soon":""}" onclick="openShop('${s.id}')"><circle cx="${s.x}" cy="${s.y}" r="11" fill="${CATS[s.cat].color}"/><text x="${s.x}" y="${s.y+3.5}" text-anchor="middle">${i+1}</text></g>`;
+  });
+  const p=youXY();
+  if(p) h+=`<g pointer-events="none"><circle cx="${p[0]}" cy="${p[1]}" r="12" fill="#fff3"><animate attributeName="r" values="8;16;8" dur="2s" repeatCount="indefinite"/></circle><circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#fff"/><text x="${p[0]}" y="${p[1]-11}" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="Inter">YOU</text></g>`;
+  S("map").innerHTML=h;
+  S("mapAd").innerHTML=adHTML(rotating(adsFor(e.type)),true);
+  const used=[...new Set(e.shops.map(s=>s.cat))];
+  S("legend").innerHTML=used.map(k=>`<span><i style="background:${CATS[k].color}"></i>${CATS[k].label}</span>`).join("")+(e.shops.some(s=>s.soon)?`<span><i style="background:#8fa6ba;opacity:.45"></i>Coming soon</span>`:"")+`<span style="width:100%">Tap an area to filter, or a pin to open it.</span>`;
+  const list=e.shops.filter(s=>zoneF==="all"||s.zone===zoneF);
+  S("zoneHead").textContent=zoneF==="all"?"Everything here":zoneById(zoneF).name;
+  S("zoneList").innerHTML=(zoneF!=="all"?`<button class="chip on" style="margin-bottom:10px" onclick="pickZone('all')">✕ ${zoneById(zoneF).name} — show all</button>`:"")+list.map(cardHTML).join("");
+  const open=e.shops.filter(s=>!s.soon&&!s.info);
+  const near=p?[...open].sort((a,b)=>Math.hypot(a.x-p[0],a.y-p[1])-Math.hypot(b.x-p[0],b.y-p[1])).slice(0,6):[...open].sort((a,b)=>waitFor(a)-waitFor(b)).slice(0,6);
+  S("nearHead").textContent=p?"Nearest to you":"Shortest queues";
+  S("nearest").innerHTML=near.map(s=>{const walk=p?Math.max(1,Math.round(Math.hypot(s.x-p[0],s.y-p[1])/55)):null;
+    return `<button class="near" onclick="openShop('${s.id}')"><div class="ico" style="background:${s.bg}">${s.emoji}</div><div class="t">${s.name}</div><div class="s">${walk?`🚶 ${walk} min · `:""}⏱ ~${waitFor(s)} min</div></button>`}).join("");
+}
+function youXY(){const l=loc();if(!l)return null;const z=zoneById(l.zone);if(!z||!z.cx)return null;
+  if(EV().type==="stadium"&&l.block){const n=(parseInt(l.block)||5)%10/10;return{North:[90+n*220,78],South:[90+n*220,425],West:[68,140+n*220],East:[332,140+n*220]}[l.zone]||[z.cx,z.cy]}
+  return [z.cx,z.cy]}
+function pickZone(k){zoneF=zoneF===k?"all":k;renderMap();if(zoneF!=="all")S("zoneHead").scrollIntoView({behavior:"smooth",block:"start"})}
+
+/* ================= SHOPS ================= */
+function cardHTML(s){
+  const i=shops().indexOf(s)+1;
+  const st=s.soon?`<span class="tag">Coming soon</span>`:s.info?`<span class="tag g">${s.hours||"Info"}</span>`:`<span class="tag b">Order ahead</span>`;
+  return `<button class="card" onclick="openShop('${s.id}')"><div class="ico" style="background:${s.bg}">${s.emoji}</div>
+    <div style="flex:1;min-width:0"><div class="t">${s.name}</div><div class="s">${s.desc}</div>
+    <div class="meta"><span class="tag">#${i} · ${zoneName(s)}</span>${st}${waitTag(s)}${s.adult?'<span class="tag r">18+</span>':""}</div></div><span class="chev">›</span></button>`;
+}
+function renderChips(){
+  const e=EV(), used=[...new Set(e.shops.map(s=>s.cat))];
+  S("catChips").innerHTML=[["all","All","✨"],...used.map(k=>[k,CATS[k].label,CATS[k].emoji])].map(([k,l,em])=>`<button class="chip ${cat===k?"on":""}" onclick="cat='${k}';renderChips();renderShops()">${em} ${l}</button>`).join("");
+  S("zoneChips").innerHTML=[["all","Everywhere"],...e.zones.map(z=>[z.id,z.name])].map(([k,l])=>`<button class="chip ${zoneF===k?"on":""}" onclick="zoneF='${k}';renderChips();renderShops()">${l}</button>`).join("");
+}
+function renderShops(){
+  const q=S("q").value.trim().toLowerCase();
+  const txt=s=>(s.name+" "+s.desc+" "+CATS[s.cat].label+" "+(s.menu||[]).flatMap(g=>g.items.map(i=>i.n+" "+i.d+" "+(i.tags||[]).map(t=>({V:"vegetarian",VG:"vegan vegetarian",GF:"gluten free"})[t]).join(" "))).join(" ")).toLowerCase();
+  const list=shops().filter(s=>(cat==="all"||s.cat===cat)&&(zoneF==="all"||s.zone===zoneF)&&(!q||txt(s).includes(q)));
+  const a=list.filter(s=>!s.soon&&!s.info),b=list.filter(s=>s.info),c=list.filter(s=>s.soon);
+  let h="";
+  if(a.length){const cards=a.map(cardHTML);
+    if(!q){const pr=EV().promos||[];if(pr.length&&cards.length>1)cards.splice(2,0,promoHTML(rotating(pr)));
+      if(cards.length>5)cards.splice(6,0,`<div style="margin-bottom:10px">${adHTML(rotating(adsFor(EV().type),1))}</div>`);
+      if(pr.length>1&&cards.length>9)cards.splice(10,0,promoHTML(rotating(pr,1)));}
+    h+=`<div class="sec">Order ahead · ${a.length}</div>`+cards.join("");}
+  if(b.length)h+=`<div class="sec">Info & free</div>`+b.map(cardHTML).join("");
+  if(c.length)h+=`<div class="sec">Coming soon</div>`+c.map(cardHTML).join("");
+  S("shopList").innerHTML=h||`<div class="empty"><div class="big">🤷</div>Nothing matches that — try another search.</div>`;
+}
+
+/* ================= SHOP SHEET ================= */
+function openShop(id){
+  const s=shopById(id),i=shops().indexOf(s)+1,canOrder=!s.soon&&!s.info;
+  let h=`<div class="shead"><div class="ico" style="background:${s.bg}">${s.emoji}</div><div style="padding-right:30px"><h2>${s.name}</h2>
+    <div class="meta">${waitTag(s)}${s.soon?'<span class="tag">Coming soon</span>':""}${s.adult?'<span class="tag r">18+</span>':""}<span class="tag">${CATS[s.cat].emoji} ${CATS[s.cat].label}</span></div></div></div>
+    <div class="sbody"><p style="color:var(--muted);margin:0 0 12px;font-size:14px;line-height:1.5">${s.desc}</p>
+    <div class="locbox">📍<div><b>${zoneName(s)}</b><br><span style="color:var(--muted)">Pin #${i} on the map${s.hours?" · "+s.hours:""}</span></div>
+    <button class="chip" style="margin-left:auto" onclick="closeSheet();zoneF='${zoneById(s.zone)?.d?s.zone:"all"}';go('map')">Show on map</button></div>`;
+  (s.menu||[]).forEach(g=>{
+    h+=`<div class="sec">${g.group}</div>`;
+    g.items.forEach((it,ix)=>{
+      const key=`${s.id}|${g.group}|${ix}`,inB=basket.find(b=>b.key===key);
+      const tags=(it.tags||[]).map(t=>`<span class="tag g">${t}</span>`).join("")+(it.adult?'<span class="tag r">18+</span>':"");
+      h+=`<div class="item"><div style="flex:1;min-width:0"><div class="n">${it.n}</div><div class="d">${it.d}${tags?` <span class="meta" style="display:inline-flex;margin:0">${tags}</span>`:""}</div></div>
+        <div class="p">${gbp(it.p)}</div>
+        ${inB?`<div class="qty"><button onclick="chg('${key}',-1,'${id}')">−</button><span>${inB.q}</span><button onclick="chg('${key}',1,'${id}')">+</button></div>`
+             :`<button class="add" ${canOrder?"":"disabled"} aria-label="Add ${it.n}" onclick="addItem('${s.id}','${esc(g.group)}',${ix})">+</button>`}</div>`;
+    });
+  });
+  h+=`<div class="note">${s.soon?"🚧 Coming soon — menu is a preview; ordering opens when it does.":s.info?"ℹ️ No ordering needed here — just turn up.":"🧾 Sample prices for this prototype. Ask staff for allergen info. V = vegetarian · VG = vegan · GF = gluten free."}</div></div>`;
+  openSheet(h);
+}
+
+/* ================= BASKET ================= */
+function addItem(sid,group,ix){
+  const s=shopById(sid),it=s.menu.find(g=>g.group===group).items[ix];
+  if(basket.length&&basket[0].sid!==sid){
+    openSheet(`<div class="sbody" style="padding-top:10px"><h2 style="font-size:26px">Start a new basket?</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.5">Your basket has items from <b>${shopById(basket[0].sid).name}</b>. Each order is collected from one place.</p>
+      <button class="cta" onclick="basket=[];addItem('${sid}','${esc(group)}',${ix})">Clear & add</button><button class="ghost" onclick="openShop('${sid}')">Keep current basket</button></div>`);
+    return;
+  }
+  basket.push({key:`${sid}|${group}|${ix}`,sid,n:it.n,p:it.p,q:1,adult:!!it.adult});
+  buzz();toast(`Added ${it.n}`);updateBadges();openShop(sid);
+}
+function chg(key,d,reopen){const b=basket.find(x=>x.key===key);if(!b)return;b.q+=d;if(b.q<=0)basket=basket.filter(x=>x!==b);updateBadges();reopen?openShop(reopen):renderBasket()}
+function updateBadges(){
+  const n=basket.reduce((a,b)=>a+b.q,0),t=basket.reduce((a,b)=>a+b.q*b.p,0);
+  S("bB").style.display=n?"":"none";S("bB").textContent=n;S("fabN").textContent=n;S("fabT").textContent=gbp(t);
+  S("fab").classList.toggle("on",!!evId&&n>0&&view!=="basket");
+  const live=orders.filter(o=>o.ev===evId&&o.stage<3).length;S("oB").style.display=live?"":"none";S("oB").textContent=live;
+}
+function canDeliver(){const e=EV();if(!e.delivery)return false;const l=loc();if(l&&zoneById(l.zone)?.standing)return false;return true}
+function renderBasket(){
+  const e=EV();
+  if(!basket.length){S("basketBody").innerHTML=`<div class="empty"><div class="big">🛒</div><b>Your basket is empty</b><br><br>Pick a stall on the map or browse shops to order without missing a thing.<br><br><button class="cta" onclick="go('shops')">Browse</button></div>`;return}
+  const s=shopById(basket[0].sid),sub=basket.reduce((a,b)=>a+b.q*b.p,0);
+  if(fulfil==="seat"&&!canDeliver())fulfil="collect";
+  const slots=e.slots(T);if(!slots.find(x=>x.id===when))when="asap";
+  const fee=fulfil==="seat"?1.5:0,adult=basket.some(b=>b.adult),l=loc();
+  const seatOk=fulfil!=="seat"||(l&&l.block&&l.row&&l.num);
+  let h=`<div class="sec">Ordering from</div><button class="card" onclick="openShop('${s.id}')"><div class="ico" style="background:${s.bg}">${s.emoji}</div><div style="flex:1"><div class="t">${s.name}</div><div class="s">${zoneName(s)}</div></div><span class="chev">›</span></button>`;
+  h+=basket.map(b=>`<div class="item"><div style="flex:1;min-width:0"><div class="n">${b.n}</div><div class="d">${gbp(b.p)} each</div></div><div class="qty"><button onclick="chg('${b.key}',-1)">−</button><span>${b.q}</span><button onclick="chg('${b.key}',1)">+</button></div><div class="p" style="min-width:58px;text-align:right">${gbp(b.p*b.q)}</div></div>`).join("");
+  h+=`<div class="sec">How do you want it?</div>
+    <button class="opt ${fulfil==="collect"?"on":""}" onclick="fulfil='collect';renderBasket()"><span class="rad"></span><span><b>🏃 Collect it</b><small>Skip the queue — show your code at the fast-track point</small></span></button>`;
+  if(e.delivery){
+    const ok=canDeliver();
+    h+=`<button class="opt ${fulfil==="seat"?"on":""}" ${ok?"":"disabled"} onclick="fulfil='seat';renderBasket()"><span class="rad"></span><span><b>💺 Bring it to my seat</b><small>${ok?`Delivered to your row · £1.50${adult?' · <span style="color:var(--amber)">ID checked on delivery</span>':""}`:"Not available in standing areas"}</small></span></button>`;
+    if(fulfil==="seat"){
+      const seatZones=e.zones.filter(z=>z.d&&!z.standing&&!z.noSeat);
+      h+=`<div class="row" style="margin:6px 0 4px"><label class="field">${e.zoneWord}<select id="fZ" onchange="seatInline()">${seatZones.map(z=>`<option value="${z.id}" ${l&&l.zone===z.id?"selected":""}>${z.name}</option>`).join("")}</select></label>
+        <label class="field">Block<input id="fBl" inputmode="numeric" value="${l?.block||""}" placeholder="14" oninput="seatInline()"></label></div>
+        <div class="row" style="margin-bottom:6px"><label class="field">Row<input id="fRo" value="${l?.row||""}" placeholder="K" oninput="seatInline()"></label>
+        <label class="field">Seat<input id="fSe" inputmode="numeric" value="${l?.num||""}" placeholder="112" oninput="seatInline()"></label></div>`;
+    }
+  }
+  h+=`<div class="sec">When?</div>`+slots.map(x=>`<button class="opt ${when===x.id?"on":""}" onclick="when='${x.id}';renderBasket()"><span class="rad"></span><span><b>${x.label}</b><small>${x.id==="asap"?`Ready in about ${waitFor(s)} min — we'll notify you`:x.sub}</small></span></button>`).join("");
+  h+=`<div style="margin-top:14px"><div class="tot"><span>Subtotal</span><span>${gbp(sub)}</span></div>${fee?`<div class="tot"><span>Seat delivery</span><span>${gbp(fee)}</span></div>`:""}<div class="tot big"><span>Total</span><span>${gbp(sub+fee)}</span></div></div>`;
+  if(adult)h+=`<label class="check"><input type="checkbox" ${ageOK?"checked":""} onchange="ageOK=this.checked;renderBasket()"> I'm 18 or over and understand ID may be checked (Challenge 25).</label>`;
+  h+=`<button class="cta" id="payBtn" ${(adult&&!ageOK)||!seatOk?"disabled":""} onclick="pay()">💳 Pay ${gbp(sub+fee)}</button>
+      <p style="text-align:center;font-size:11.5px;color:var(--muted);margin:8px 0 0">${e.pay} · Apple Pay / Google Pay (simulated)</p>`;
+  S("basketBody").innerHTML=h;
+}
+function seatInline(){
+  locs[evId]={zone:S("fZ").value,block:S("fBl").value.trim(),row:S("fRo").value.trim(),num:S("fSe").value.trim()};saveLocs();renderTop();
+  const l=loc(),adult=basket.some(b=>b.adult);S("payBtn").disabled=(adult&&!ageOK)||!(l.block&&l.row&&l.num);
+}
+function pay(){
+  const e=EV(),s=shopById(basket[0].sid),slot=e.slots(T).find(x=>x.id===when);
+  S("payBtn").disabled=true;S("payBtn").textContent="Processing…";
+  setTimeout(()=>{
+    const code=String.fromCharCode(65+Math.floor(Math.random()*26))+Math.floor(100+Math.random()*900);
+    const total=basket.reduce((a,b)=>a+b.q*b.p,0)+(fulfil==="seat"?1.5:0);
+    const o={code,created:Date.now(),ev:evId,sid:s.id,items:basket.map(b=>({...b})),total,fulfil,slot:slot.label,at:slot.at,stage:-1,loc:loc()?{...loc()}:null,adult:basket.some(b=>b.adult)};
+    orders.unshift(o);basket=[];ageOK=false;
+    if(slot.at==null)activate(o);
+    saveOrders();
+    updateBadges();go("orders");buzz();toast(slot.at==null?"Order sent to the kitchen 👨‍🍳":"Order scheduled 🗓");renderKitchen();
+  },1000);
+}
+
+/* ================= ORDER LIFECYCLE ================= */
+// stage: -1 scheduled · 0 new (in kitchen) · 1 preparing · 2 ready (customer alerted) · 3 collected
+let autoSecs=120;try{const v=localStorage.getItem("cc_auto");if(v!=null)autoSecs=+v}catch(e){}
+const AUTO_OPTS=[[30,"30 seconds"],[60,"1 minute"],[120,"2 minutes"],[180,"3 minutes"],[0,"Off — staff press Ready"]];
+function activate(o){
+  o.stage=0;o.placedAt=Date.now();o.auto=autoSecs;o.isNew=true;flashOff(o.code);
+  chime("new");renderKitchen();saveOrders();
+}
+function setStage(code,st,by){
+  const o=orders.find(x=>x.code===code);if(!o||o.stage>=st)return;
+  o.stage=st;o.isNew=false;
+  if(st===2){o.readyAt=Date.now();o.readyBy=by||"staff";notifyReady(o)}
+  if(st===3)o.doneAt=Date.now();
+  saveOrders();refreshOrdersUI();
+}
+function refreshOrdersUI(){if(view==="orders")renderOrders();renderKitchen();updateBadges()}
+function notifyReady(o,resend){
+  const e=EVENTS[o.ev],s=shopById(o.sid,e),seat=o.fulfil==="seat";
+  if(MODE==="kitchen"){if(resend)bcSend({resend:o.code});kToast(resend?"🔔 Alert re-sent to customer":`✅ ${o.code}: customer notified`);chime("ready");return}
+  if(resend&&MODE==="demo")bcSend({resend:o.code});
+  S("pushT").textContent=seat?`🛵 Order ${o.code} is on its way!`:`🎉 Order ${o.code} is ready for collection`;
+  S("pushD").textContent=seat?`A steward is bringing it to Block ${o.loc?.block}, Row ${o.loc?.row}, Seat ${o.loc?.num}.${o.adult?" Have your ID ready.":""}`
+    :`Head to the ${s.name} fast-track point (${zoneById(s.zone,e).name}) and show code ${o.code}.${o.adult?" ID may be checked.":""}`;
+  placePush();S("push").classList.add("on");
+  chime("ready");try{navigator.vibrate&&navigator.vibrate([120,60,120])}catch(e){}
+  clearTimeout(window._pt);window._pt=setTimeout(()=>S("push").classList.remove("on"),7000);
+  if(resend)kToast("🔔 Alert re-sent to customer");else kToast(`✅ ${o.code}: customer notified`);
+}
+function placePush(){
+  const p=S("push");
+  if(innerWidth>=1000){const r=S("phone").getBoundingClientRect();p.style.left=(r.left+r.width/2)+"px";p.style.width=(r.width-24)+"px"}
+  else{p.style.left="";p.style.width=""}
+}
+function pushTap(){S("push").classList.remove("on");if(innerWidth<1000)closeKitchen();if(evId)go("orders")}
+
+/* simple sounds (works after the first tap on the page) */
+let actx=null;
+document.addEventListener("pointerdown",()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}},{passive:true});
+function chime(kind){
+  if(!actx)return;
+  try{const notes=kind==="ready"?[784,1047,1319]:[523,659];const t0=actx.currentTime;
+    notes.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;const t=t0+i*.13;
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.4);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.45)})}catch(e){}
+}
+const mmss=ms=>{ms=Math.max(0,ms);const s=Math.ceil(ms/1000);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+const ago=ms=>{const s=Math.floor(ms/1000);return s<60?s+"s ago":Math.floor(s/60)+"m ago"};
+
+/* 1-second engine: autopilot + live countdowns */
+setInterval(()=>{
+  const now=Date.now();
+  orders.forEach(o=>{
+    if(o.stage<0||o.stage>=2||!o.auto)return;
+    if(o.stage===0&&now-o.placedAt>10000)setStage(o.code,1,"auto");
+    if(now>=o.placedAt+o.auto*1000)setStage(o.code,2,"auto");
+  });
+  document.querySelectorAll("[data-cd]").forEach(el=>el.textContent=mmss(+el.dataset.cd-now));
+  document.querySelectorAll("[data-ago]").forEach(el=>el.textContent=ago(now-+el.dataset.ago));
+},1000);
+
+/* ================= KITCHEN SCREEN ================= */
+let kStall="all";
+function openKitchen(){if(MODE==="customer"){const w=window.open("kitchen.html","_blank");if(!w)location.href="kitchen.html";return}renderKitchen();S("kitchen").classList.add("on")}
+function closeKitchen(){S("kitchen").classList.remove("on")}
+function kToast(t){const el=S("kToast");if(!el)return;el.textContent=t;el.style.opacity=1;clearTimeout(window._kt);window._kt=setTimeout(()=>el.style.opacity=0,2600)}
+function setAuto(v){autoSecs=+v;try{localStorage.setItem("cc_auto",autoSecs)}catch(e){}orders.forEach(o=>{if(o.stage>=0&&o.stage<2)o.auto=autoSecs});saveOrders();renderKitchen();if(view==="orders")renderOrders()}
+function renderKitchen(){
+  if(!evId){
+    S("kSub").textContent="Staff view";S("kCtl").innerHTML=`<div class="khint">This is the screen stall staff see. Open an event in the app and place an order — it lands here.</div>`;
+    S("kBody").innerHTML="";return;
+  }
+  const e=EV(),evo=orders.filter(o=>o.ev===evId),list=evo.filter(o=>kStall==="all"||o.sid===kStall);
+  const withOrders=[...new Set(evo.map(o=>o.sid))];
+  const n=st=>list.filter(o=>o.stage===st).length;
+  S("kSub").textContent=`Staff view · ${e.name} · ${e.venue}`;
+  S("kCtl").innerHTML=`<div class="kctl">
+     <label class="field">Stall<select onchange="kStall=this.value;renderKitchen()"><option value="all">All stalls (${evo.filter(o=>o.stage>=0&&o.stage<3).length} live)</option>${e.shops.filter(s=>!s.info&&!s.soon).map(s=>`<option value="${s.id}" ${kStall===s.id?"selected":""}>${s.emoji} ${s.name}${withOrders.includes(s.id)?" •":""}</option>`).join("")}</select></label>
+     <label class="field">Demo autopilot — mark orders ready after<select onchange="setAuto(this.value)">${AUTO_OPTS.map(([v,l])=>`<option value="${v}" ${autoSecs===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
+   <div class="kstats"><span class="tag a">🆕 ${n(0)} new</span><span class="tag b">👨‍🍳 ${n(1)} preparing</span><span class="tag g">🔔 ${n(2)} ready</span><span class="tag">✔ ${n(3)} collected</span>${n(-1)?`<span class="tag">🗓 ${n(-1)} scheduled</span>`:""}
+   <span id="kToast" class="tag g" style="opacity:0;transition:opacity .3s;margin-left:auto"></span>${evo.length?`<button class="tag" style="cursor:pointer" onclick="clearDemo()">🗑 Clear demo orders</button>`:""}</div>
+   ${evo.length?"":`<div class="khint">👋 ${MODE==="kitchen"?`Open the <a href="customer.html" target="_blank" style="color:var(--sky)">customer app</a> in another tab or window on this device and place an order`:`Place an order in the app${innerWidth>=1000?" on the left":""}`} — it appears here instantly. Press <b>Ready — notify customer</b> and their phone gets a notification. With autopilot on, orders go ready automatically.</div>`}`;
+  const col=(st,title,color)=>{
+    const items=list.filter(o=>o.stage===st);
+    return `<div class="kcol"><h3><i style="background:${color}"></i>${title}<span class="cnt">${items.length}</span></h3>${items.map(ticket).join("")||`<div class="kempty">${st===0?"No new orders":st===1?"Nothing cooking":"Nothing waiting"}</div>`}</div>`;
+  };
+  const sched=list.filter(o=>o.stage===-1),done=list.filter(o=>o.stage===3).slice(0,5);
+  S("kBody").innerHTML=col(0,"New orders","var(--amber)")+col(1,"Preparing","var(--sky)")+col(2,"Ready — waiting for customer","var(--green)")+
+    (sched.length?`<div class="kcol"><h3><i style="background:#5b7389"></i>Scheduled<span class="cnt">${sched.length}</span></h3>${sched.map(ticket).join("")}</div>`:"")+
+    (done.length?`<div class="kcol"><h3><i style="background:#5b7389"></i>Recently collected<span class="cnt">${done.length}</span></h3>${done.map(ticket).join("")}</div>`:"");
+}
+function ticket(o){
+  const e=EVENTS[o.ev],s=shopById(o.sid,e),seat=o.fulfil==="seat",now=Date.now();
+  const cls=o.stage===-1||o.stage===3?"sx":"s"+o.stage;
+  const how=seat?`<span class="tag a">💺 To seat: ${zoneById(o.loc.zone,e).name} · B${o.loc.block} R${o.loc.row} S${o.loc.num}</span>`:`<span class="tag b">🏃 Collect</span>`;
+  let btn="";
+  if(o.stage===0)btn=`<button class="tkbtn prep" onclick="setStage('${o.code}',1)">👨‍🍳 Start preparing</button>`;
+  if(o.stage===1)btn=`<button class="tkbtn ready" onclick="setStage('${o.code}',2)">🔔 ${seat?"Send out":"Ready"} — notify customer</button>`;
+  if(o.stage===2)btn=`<button class="tkbtn done" onclick="setStage('${o.code}',3)">✔ ${seat?"Delivered":"Collected"}</button><button class="tklink" onclick="notifyReady(orders.find(x=>x.code==='${o.code}'),true)">🔔 Re-send alert</button>`;
+  const auto=(o.stage===0||o.stage===1)&&o.auto?`<div class="auto">🤖 Autopilot: ready in <span data-cd="${o.placedAt+o.auto*1000}">${mmss(o.placedAt+o.auto*1000-now)}</span></div>`:"";
+  const sub=o.stage===2?`Customer alerted ${o.readyBy==="auto"?"(autopilot)":"by staff"} · <span data-ago="${o.readyAt}">${ago(now-o.readyAt)}</span>`
+    :o.stage===-1?`For: ${o.slot.replace(/^\S+\s/,"")}`:o.stage===3?"Done":`Placed <span data-ago="${o.placedAt}">${ago(now-o.placedAt)}</span>`;
+  return `<div class="tk ${cls} ${o.isNew?"flash":""}"><div class="bar"></div><div class="tkin">
+    <div class="tkh"><span class="tkcode">${o.code}</span><span class="tkago">${sub}</span></div>
+    <div class="tks">${s.emoji} ${s.name} · ${zoneById(s.zone,e).name}</div>
+    <ul>${o.items.map(i=>`<li><b>${i.q}×</b>${i.n}</li>`).join("")}</ul>
+    <div class="meta">${how}${o.adult?'<span class="tag r">🪪 18+ — check ID</span>':""}${o.slot&&!o.slot.startsWith("⚡")?`<span class="tag">${o.slot}</span>`:""}</div>
+    ${auto}${o.stage===3?"":btn}</div></div>`;
+}
+function renderOrders(){
+  const mine=orders.filter(o=>o.ev===evId);
+  if(!mine.length){S("ordersBody").innerHTML=`<div class="empty"><div class="big">🧾</div><b>No orders yet</b><br><br>Your live orders and collection codes appear here.</div>`;return}
+  S("ordersBody").innerHTML=`<div class="sec">Your orders</div>`+mine.map(o=>{
+    const e=EVENTS[o.ev],s=shopById(o.sid,e),seat=o.fulfil==="seat";
+    const labs=seat?["Received","Preparing","On its way","Delivered"]:["Received","Preparing","Ready","Collected"];
+    const status=o.stage<0?`🗓 Scheduled — ${o.slot.replace(/^\S+\s/,"")}`:["📥 Sent to the kitchen","👨‍🍳 Being prepared",seat?"🛵 On its way to you":"✅ Ready for collection",seat?"🎉 Delivered":"🎉 Collected"][o.stage];
+    const where=seat&&o.loc?`Delivering to ${zoneById(o.loc.zone,e).name} · Block ${o.loc.block}, Row ${o.loc.row}, Seat ${o.loc.num}`:`Collect at ${s.name} fast-track point · ${zoneById(s.zone,e).name}`;
+    const eta=(o.stage===0||o.stage===1)?(o.auto?`<div style="font-size:13px;margin-top:8px">⏱ Estimated ready in <b data-cd="${o.placedAt+o.auto*1000}">${mmss(o.placedAt+o.auto*1000-Date.now())}</b> — we'll send you a notification</div>`:`<div style="font-size:13px;margin-top:8px">🔔 We'll notify you the moment the kitchen marks it ready</div>`):"";
+    const rbox=o.stage===2?`<div class="readybox">${seat?`A steward is on the way to your seat.${o.adult?" Have your ID ready.":""}`:`<b>Show this code at the fast-track counter.</b> No need to queue.${o.adult?" ID may be checked.":""}`}</div>`:"";
+    return `<div class="ord ${o.stage===2?"ready":""}"><div class="h"><div><div style="font-size:12px;color:var(--muted)">Your code</div><div class="code">${o.code}</div></div><div class="ico" style="background:${s.bg};width:48px;height:48px;font-size:24px">${s.emoji}</div></div>
+      <div class="status">${status}</div><div style="font-size:12.5px;color:var(--muted);margin-top:3px">${where}</div>${eta}${rbox}
+      <div class="steps">${labs.map((_,i)=>`<div class="${i<o.stage||o.stage===3?"done":i===o.stage?"cur":""}"></div>`).join("")}</div>
+      <div class="stlbl">${labs.map(x=>`<span>${x}</span>`).join("")}</div>
+      <ul>${o.items.map(i=>`<li><span>${i.q} × ${i.n}</span><span>${gbp(i.q*i.p)}</span></li>`).join("")}<li style="color:var(--text);font-weight:700;border-top:1px solid var(--line);margin-top:6px;padding-top:6px"><span>Paid</span><span>${gbp(o.total)}</span></li></ul>
+      ${o.stage===2?`<button class="cta" onclick="setStage('${o.code}',3)">${seat?"I've got it":"I've collected it"}</button>`:""}</div>`;
+  }).join("")+(mine.some(o=>o.stage>=0&&o.stage<2)?`<div class="sec">While you wait</div>${adHTML(rotating(adsFor(EV().type),2),true)}`:"")+`<button class="ghost" onclick="openKitchen()" style="margin-top:10px">👨‍🍳 See what the kitchen sees</button>`;
+}
+
+/* ================= LOCATION / ADD EVENT ================= */
+function openLoc(){
+  const e=EV(),l=loc()||{},zs=e.zones.filter(z=>z.d&&(!e.seated||!z.noSeat));
+  let h=`<div class="sbody" style="padding-top:6px"><h2 style="font-size:26px">${e.seated?"Where are you sitting?":"Where are you?"}</h2>
+   <p style="color:var(--muted);font-size:14px;line-height:1.5">${e.seated?"It's on your ticket. We use it to show the nearest stalls and for seat delivery.":"Pick the area you're in and we'll show what's closest."}</p>`;
+  if(e.seated){
+    h+=`<label class="field" style="margin-top:10px">${e.zoneWord}<select id="lZ" onchange="S('seatF').style.display=EVENTS[evId].zones.find(z=>z.id===this.value).standing?'none':''">${zs.map(z=>`<option value="${z.id}" ${l.zone===z.id?"selected":""}>${z.name}</option>`).join("")}</select></label>
+     <div id="seatF" style="${zoneById(l.zone||zs[0].id).standing?"display:none":""}"><div class="row" style="margin-top:8px"><label class="field">Block<input id="lB" inputmode="numeric" value="${l.block||""}" placeholder="14"></label><label class="field">Row<input id="lR" value="${l.row||""}" placeholder="K"></label><label class="field">Seat<input id="lS" inputmode="numeric" value="${l.num||""}" placeholder="112"></label></div></div>`;
+  }else{
+    h+=`<div style="margin-top:10px">${zs.map(z=>`<button class="opt ${l.zone===z.id?"on":""}" onclick="locs[evId]={zone:'${z.id}'};saveLocs();closeSheet();refresh();toast('Location set 📍')"><span class="rad"></span><span><b>${z.name}</b><small>${e.shops.filter(s=>s.zone===z.id).length} places here</small></span></button>`).join("")}</div>`;
+  }
+  if(e.seated)h+=`<button class="cta" onclick="saveLoc()">Save</button>`;
+  openSheet(h+`</div>`);
+}
+function saveLoc(){
+  const z=S("lZ").value,st=zoneById(z).standing;
+  locs[evId]=st?{zone:z}:{zone:z,block:S("lB").value.trim(),row:S("lR").value.trim(),num:S("lS").value.trim()};
+  saveLocs();closeSheet();refresh();toast("Seat saved 📍");
+}
+function openAddEvent(){
+  openSheet(`<div class="sbody" style="padding-top:6px"><h2 style="font-size:26px">Bring Concourse to your event</h2>
+   <p style="color:var(--muted);font-size:14px;line-height:1.55">Every event in the app is just a data file: a simple map of its areas, a pin for each stall, and each stall's menu. The ordering, queue times, timings and tracking work the same everywhere.</p>
+   <div class="sec">Works for</div>
+   <div class="meta">${["🏟️ Football & rugby grounds","🏏 Cricket","🏇 Racecourses","🎪 Music festivals","🎤 Arenas & concerts","🎭 Theatres","🌳 County & food shows","🎄 Christmas markets","🏎️ Motorsport","🎾 Tennis & golf"].map(x=>`<span class="tag b" style="font-size:12px;padding:5px 10px">${x}</span>`).join("")}</div>
+   <div class="sec">What changes per event</div>
+   <div class="note" style="margin-top:0;font-size:13px">• <b>Areas</b> — stands, stages, tents, levels or fields<br>• <b>Timings</b> — half-time, set changeovers, intervals, lunch rush<br>• <b>Location</b> — seat numbers for seated venues, “which area” for festivals<br>• <b>Delivery</b> — to-seat where it's safe, collection everywhere else</div>
+   <div class="sec">For a real launch</div>
+   <div class="note" style="margin-top:0;font-size:13px">• Live menus, prices and stock from each stall's till<br>• Real payments, plus festival wristband top-ups<br>• Push notifications when orders are ready<br>• Live queue times from tills or footfall sensors<br>• Publish to the App Store and Google Play</div>
+   <button class="cta" onclick="closeSheet()">Got it</button></div>`);
+}
+
+/* ================= NAV / SHEET / MISC ================= */
+function openEvent(k){
+  if(evId!==k){basket=[];cat="all";zoneF="all";fulfil="collect";when="asap";T=0;kStall="all"}
+  evId=k;S("nav").classList.add("on");S("q").value="";go("map");
+}
+function goHome(){evId=null;S("nav").classList.remove("on");go("home");renderKitchen()}
+function go(v){
+  view=v;seen=new Set();
+  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  refresh();S("app").scrollTo({top:0,behavior:"smooth"});
+}
+function refresh(){
+  renderTop();
+  if(view==="home")renderHome();
+  if(!evId){S("disc").innerHTML=disclaimer();updateBadges();return}
+  if(view==="map")renderMap(); if(view==="shops"){renderChips();renderShops()} if(view==="basket")renderBasket(); if(view==="orders")renderOrders();
+  S("disc").innerHTML=disclaimer();updateBadges();renderKitchen();
+}
+function disclaimer(){
+  const e=evId&&EV();
+  if(e&&!e.demo)return `Concept prototype — not affiliated with the venue or club. Shop list from <a href="${e.source.url}">${e.source.label}</a>; prices, menus, queue times and pin positions are illustrative. Payments are simulated.`;
+  if(e)return `Demo event with made-up stalls, prices and timings, to show how Concourse works at a ${TYPES[e.type].label.toLowerCase().replace(/s$/,"").replace("arenas & concert","concert")}. Payments are simulated.`;
+  return `Concept prototype — not affiliated with the venue or club. Payments are simulated.`;
+}
+function openSheet(h){S("sheetBody").innerHTML=h;S("sheet").scrollTop=0;S("sheet").classList.add("on");S("scrim").classList.add("on")}
+function closeSheet(){S("sheet").classList.remove("on");S("scrim").classList.remove("on");S("sheet").style.transform=""}
+/* swipe down to close */
+(()=>{let y0=null,dy=0;const g=S("grab"),sh=S("sheet");
+  g.addEventListener("touchstart",e=>{y0=e.touches[0].clientY;sh.style.transition="none"},{passive:true});
+  g.addEventListener("touchmove",e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform=`translate(-50%,${dy}px)`},{passive:true});
+  g.addEventListener("touchend",()=>{sh.style.transition="";if(dy>90)closeSheet();else sh.style.transform="";y0=null;dy=0});
+})();
+let tt;function toast(t){S("toast").textContent=t;S("toast").classList.add("on");clearTimeout(tt);tt=setTimeout(()=>S("toast").classList.remove("on"),2400)}
+function buzz(){try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}}
+
+/* simulated live clock: 1 event-minute every 10 seconds */
+setInterval(()=>{
+  T++;
+  orders.forEach(o=>{if(MODE!=="kitchen"&&o.stage===-1&&o.ev===evId&&T>=o.at){activate(o);refreshOrdersUI()}});
+  if(evId){renderTop();if(view==="orders")renderOrders();if(view==="map")renderMap()}
+},10000);
+
+/* ================= SYNC between customer app & kitchen app (same browser, any tabs/windows) ================= */
+function flashOff(c){setTimeout(()=>{const o=orders.find(x=>x.code===c);if(o)o.isNew=false},4500)}
+function loadOrders(){try{return JSON.parse(localStorage.getItem("cc_orders"))||[]}catch(e){return []}}
+function mergeOrders(a,b){const mp=new Map();[...a,...b].forEach(o=>{const x=mp.get(o.code);if(!x||o.stage>=x.stage)mp.set(o.code,{...x,...o})});
+  return [...mp.values()].sort((p,q)=>(q.created||0)-(p.created||0))}
+function saveOrders(){orders=mergeOrders(loadOrders(),orders);try{localStorage.setItem("cc_orders",JSON.stringify(orders))}catch(e){}}
+let bc=null;try{bc=new BroadcastChannel("concourse")}catch(e){}
+function bcSend(m){try{bc&&bc.postMessage(m)}catch(e){}}
+if(bc)bc.onmessage=ev=>{const m=ev.data||{};if(m.resend&&MODE!=="kitchen"){const o=orders.find(x=>x.code===m.resend);if(o)notifyReady(o)}};
+function onSync(){
+  const fresh=mergeOrders(orders,loadOrders());
+  fresh.forEach(o=>{const old=orders.find(x=>x.code===o.code);
+    if(MODE!=="kitchen"&&old&&old.stage<2&&o.stage===2)setTimeout(()=>notifyReady(o),50);
+    if(MODE==="kitchen"&&(!old||old.stage<0)&&o.stage===0){o.isNew=true;flashOff(o.code);chime("new")}});
+  orders=fresh;refreshOrdersUI();
+}
+addEventListener("storage",e=>{if(e.key==="cc_orders"){if(e.newValue==null){orders=[];refreshOrdersUI()}else onSync()}if(e.key==="cc_auto"&&e.newValue!=null){autoSecs=+e.newValue;renderKitchen()}});
+function clearDemo(){orders=[];try{localStorage.removeItem("cc_orders")}catch(e){}bcSend({});refreshOrdersUI();kToast("Demo orders cleared")}
+orders=loadOrders().map(o=>({...o,isNew:false}));
+if(MODE==="kitchen"){evId="cbs";document.title="Concourse Kitchen – Staff Screen"}
+refresh();renderKitchen();
+</script>
+</body>
+</html>
